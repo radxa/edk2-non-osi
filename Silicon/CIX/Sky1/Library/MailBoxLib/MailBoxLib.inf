@@ -1,0 +1,31 @@
+## @file
+#
+#  Copyright 2023 - 2024 Cix Technology (Shanghai) Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = MailBoxLib
+  FILE_GUID                      = 500B673F-2911-4386-9A21-FBD83FC5DFBB
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = MailBoxLib
+
+[Binaries.AARCH64]
+  LIB|MailBoxLib.lib|*
+
+[Packages]
+  MdePkg/MdePkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  DebugLib
+  IoLib
+  TimerLib
+

@@ -1,0 +1,36 @@
+#  @file
+#  Component description file for I2cLib module
+#
+#  Copyright 2023 Cix Technology (Shanghai) Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = I2cLib
+  FILE_GUID                      = 5945EA46-66E7-4659-97C6-26D93676A4C2
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = I2cLib
+
+[Binaries.AARCH64]
+  LIB|I2cLib.lib|*
+
+[LibraryClasses]
+  IoLib
+  BaseLib
+  TimerLib
+  DebugLib
+  UefiBootServicesTableLib
+
+[Packages]
+  MdePkg/MdePkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[FeaturePcd]
+
+[Protocols]
+  gCixClockProtocolGuid
+  gCixResetProtocolGuid
