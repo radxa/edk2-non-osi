@@ -35,15 +35,13 @@
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiLib
-  #DisplayLib
-  #DptxLib
-  #DpuCrtcLib
 
 [Protocols]
   gEfiDevicePathProtocolGuid
   gEfiGraphicsOutputProtocolGuid
   gCixCrtcProtocolGuid
   gCixConnectorProtocolGuid
+  gCixConfigParamsManageProtocolGuid
 
 [FeaturePcd]
   gArmPlatformTokenSpaceGuid.PcdGopDisableOnExitBootServices
@@ -54,4 +52,4 @@
   gArmPlatformTokenSpaceGuid.PcdArmLcdDdrFrameBufferSize
 
 [Depex]
-  TRUE
+  gCixPdProtocolGuid

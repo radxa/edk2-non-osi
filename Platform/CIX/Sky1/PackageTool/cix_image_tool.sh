@@ -134,12 +134,6 @@ function check_if_key_exist() {
 		return 1
 	fi
 
-	check_file $CIX_KEY
-	if [ $? == 0 ]; then
-		error_print "[Error]: cix_key=$CIX_KEY is exist, please make sure keys/ empty"
-		return 1
-	fi
-
 	check_file $TRUSTED_WORLD_KEY
 	if [ $? == 0 ]; then
 		error_print "[Error]: trusted_world_key=$TRUSTED_WORLD_KEY is exist, please make sure keys/ empty"
@@ -213,12 +207,6 @@ function check_all_keys_file() {
 	check_file $OEM_KEY
 	if [ $? != 0 ]; then
 		error_print "[Error]: oem_key=$OEM_KEY is not exist, please put right key"
-		return 1
-	fi
-
-	check_file $CIX_KEY
-	if [ $? != 0 ]; then
-		error_print "[Error]: cix_key=$CIX_KEY is not exist, please put right key"
 		return 1
 	fi
 
@@ -789,7 +777,6 @@ else
 fi
 # Define all keys file name which will be used in tool
 OEM_KEY=${KEYS_PATH}/oem_privatekey.pem
-CIX_KEY=${KEYS_PATH}/cix_privatekey.pem
 TRUSTED_WORLD_KEY=${KEYS_PATH}/trusted_world_privatekey.pem
 NON_TRUSTED_WORLD_KEY=${KEYS_PATH}/non_trusted_world_privatekey.pem
 BL31_KEY=${KEYS_PATH}/bl31_privatekey.pem
@@ -798,9 +785,7 @@ BL33_KEY=${KEYS_PATH}/bl33_privatekey.pem
 
 # Define Public key file name
 OEM_PUBLIC_KEY=${KEYS_PATH}/oem_publickey.pem
-CIX_PUBLIC_KEY=${KEYS_PATH}/cix_publickey.pem
 OEM_HASH_ROTPK=${KEYS_PATH}/hash_oem_rotpk.md
-CIX_HASH_ROTPK=${KEYS_PATH}/hash_cix_rotpk.md
 
 case $OPERATION_FLAG in
 	"verify" )
