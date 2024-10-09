@@ -13,14 +13,13 @@ export PATH_OUT="${WORKSPACE}/output"
 
 export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
 export UEFI_PROJECT="Merak"
-export UEFI_DSC_FILE="Platform/CIX/Sky1/${UEFI_PROJECT}/${UEFI_PROJECT}.dsc"
 export GCC5_AARCH64_PREFIX="${WORKSPACE}/tools/gcc/${ARM_TOOLCHAIN_ELF}/bin/aarch64-none-elf-"
 export IASL_PREFIX="${WORKSPACE}/tools/acpica/generate/unix/bin/"
 export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
 
 
 exec_build_uefi() {
-    
+
 if [ ! -e $WORKSPACE/edk2/MdeModulePkg/Library/BrotliCustomDecompressLib/brotli/.git ]; then
 	echo "Need update edk2 submodule!"
 	cd $WORKSPACE/edk2
@@ -51,21 +50,59 @@ rm -rf ${WORKSPACE}/Build
 local BUILD_DATE=`date +%VM%y%m%d%H%M%SN`
 local UEFI_TARGET=RELEASE
 local BOARD=evb
+local UEFI_DSC_FILE="Platform/CIX/Sky1/${UEFI_PROJECT}/${UEFI_PROJECT}.dsc"
 build -a AARCH64 -t GCC5 -p $UEFI_DSC_FILE -b $UEFI_TARGET -D BOARD_NAME=$BOARD -D BUILD_DATE=$BUILD_DATE -D COMMIT_HASH=$COMMIT_HASH -D SMP_ENABLE=1 -D ACPI_BOOT_ENABLE=1
 
 cp Build/${UEFI_PROJECT}/${UEFI_TARGET}_GCC5/FV/SKY1_BL33_UEFI.fd ${PATH_OUT}
 
 }
 
+build_memcfg(){
+    echo -e "BUILD MEMCFG $1 Started."
+    local memcfg_dir="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool/memory_config_tool_common"
+    local PATH_FIRMARES="${PATH_OUT}/Firmwares"
+    local memcfg_file="memory_config.bin"
+    local MEM_CFG_MEMFREQ="1600"
+
+    if [ "$1" == "3200" ]; then
+        MEM_CFG_MEMFREQ="1600"
+    elif [ "$1" == "5500" ]; then
+        MEM_CFG_MEMFREQ="2750"
+    elif [ "$1" == "6400" ]; then
+        MEM_CFG_MEMFREQ="3200"
+    fi
+
+    cd $memcfg_dir
+
+    #compile and generate the memory config with the param: $MEM_CONF_FREQ and $MEM_CONF_CH
+    make -e CFLAG:="-DMEM_CFG_MEMFREQ=${MEM_CFG_MEMFREQ} -DMEM_CFG_CHMASK=15" || exit 1
+
+    cp $memcfg_dir/$memcfg_file $PATH_FIRMARES
+
+    cd -
+    echo -e "${GREEN}BUILD MEMCFG[$1] Success.${NORMAL}"
+}
+
+
 exec_cix_mkimage() {
     export PATH_PACKAGE_TOOL="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool"
     local PATH_FIRMARES="${PATH_OUT}/Firmwares"
     local PATH_KEYS="${PATH_OUT}/Keys"
+    local PATH_PROJECT_FIRMARE="${WORKSPACE}/edk2-platforms/Platform/CIX/Sky1/${UEFI_PROJECT}"
 
     # copy require files to output
     cp -r "${PATH_PACKAGE_TOOL}/Firmwares/" "${PATH_OUT}"
 
     cp -r "${PATH_PACKAGE_TOOL}/Keys/" "${PATH_OUT}"
+
+    # build memory config
+    build_memcfg 5500
+
+    # update project specific ec firmware
+    if [[ -e "${PATH_PROJECT_FIRMARE}/ec_firmware.bin" ]]; then
+        echo "found project specific ec firmware ${PATH_PROJECT_FIRMARE}/ec_firmware.bin"
+        cp "${PATH_PROJECT_FIRMARE}/ec_firmware.bin" "${PATH_FIRMARES}"
+    fi
 
     # check bootloader1 image
     if [[ ! -e "${PATH_FIRMARES}/bootloader1.img" ]]; then
@@ -86,10 +123,10 @@ exec_cix_mkimage() {
 
     # Generate spi flash image
     cd "${PATH_OUT}"
- 
+
     echo "${PATH_PACKAGE_TOOL}/cix_package_tool" -c "${PATH_PACKAGE_TOOL}/cix_spi_flash_config.json" -o "${PATH_OUT}/cix_flash_all.bin"
     "${PATH_PACKAGE_TOOL}/cix_package_tool" -c "${PATH_PACKAGE_TOOL}/cix_spi_flash_config.json" -o "${PATH_OUT}/cix_flash_all.bin"
-    
+
     cd -
 
     echo -e "${GREEN}Generate ${PATH_OUT}/cix_flash_all.bin successful!${NORMAL}"
@@ -108,6 +145,12 @@ fi
 if [[ ! -e "${PATH_OUT}" ]]; then
     mkdir -p "${PATH_OUT}"
 fi
+
+if [ ! -z "$1" ]; then
+    UEFI_PROJECT="$1"
+fi
+
+echo "Build UEFI Project $UEFI_PROJECT"
 
 exec_build_uefi
 exec_cix_mkimage
