@@ -23,8 +23,10 @@ exec_build_uefi() {
 if [ ! -e $WORKSPACE/edk2/MdeModulePkg/Library/BrotliCustomDecompressLib/brotli/.git ]; then
 	echo "Need update edk2 submodule!"
 	cd $WORKSPACE/edk2
-	git submodule init
-	git config --list|grep submodule.*url=|sed -e 's#^\(.*url\)=https://github.com/\(.*\)$#git config \1 ssh://git@gitmirror.cixcomputing.com/github_mirror/\2##g'|while read c;do $c;done
+    if [ "${NETWORK}" == "internal" ];then
+	    git submodule init
+	    git config --list|grep submodule.*url=|sed -e 's#^\(.*url\)=https://github.com/\(.*\)$#git config \1 ssh://git@gitmirror.cixcomputing.com/github_mirror/\2##g'|while read c;do $c;done
+    fi
 	git submodule update --init
 fi
 
@@ -59,8 +61,7 @@ cp Build/${UEFI_PROJECT}/${UEFI_TARGET}_GCC5/FV/SKY1_BL33_UEFI.fd ${PATH_OUT}
 
 build_memcfg(){
     echo -e "BUILD MEMCFG $1 Started."
-    local memcfg_dir="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool/memory_config_tool_common"
-    local PATH_FIRMARES="${PATH_OUT}/Firmwares"
+    local memcfg_dir="${PATH_PROJECT}/memory_config_tool_common"
     local memcfg_file="memory_config.bin"
     local MEM_CFG_MEMFREQ="1600"
 
@@ -86,22 +87,24 @@ build_memcfg(){
 
 exec_cix_mkimage() {
     export PATH_PACKAGE_TOOL="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool"
-    local PATH_FIRMARES="${PATH_OUT}/Firmwares"
-    local PATH_KEYS="${PATH_OUT}/Keys"
-    local PATH_PROJECT_FIRMARE="${WORKSPACE}/edk2-platforms/Platform/CIX/Sky1/${UEFI_PROJECT}"
+    export PATH_FIRMARES="${PATH_OUT}/Firmwares"
+    export PATH_PROJECT="${WORKSPACE}/edk2-platforms/Platform/CIX/Sky1/${UEFI_PROJECT}"
 
     # copy require files to output
     cp -r "${PATH_PACKAGE_TOOL}/Firmwares/" "${PATH_OUT}"
 
     cp -r "${PATH_PACKAGE_TOOL}/Keys/" "${PATH_OUT}"
 
-    # build memory config
-    build_memcfg 5500
+    # build project specific memory config
+    if [[ -e "${PATH_PROJECT}/memory_config_tool_common" ]]; then
+        echo -e "${GREEN}found project specific memory config ${PATH_PROJECT}/memory_config_tool_common${NORMAL}"
+        build_memcfg 5500
+    fi
 
-    # update project specific ec firmware
-    if [[ -e "${PATH_PROJECT_FIRMARE}/ec_firmware.bin" ]]; then
-        echo "found project specific ec firmware ${PATH_PROJECT_FIRMARE}/ec_firmware.bin"
-        cp "${PATH_PROJECT_FIRMARE}/ec_firmware.bin" "${PATH_FIRMARES}"
+    # update project specific low level firmware
+    if [[ -e "${PATH_PROJECT}/Firmwares/" ]]; then
+        echo -e "${GREEN}found project specific firmware folder ${PATH_PROJECT}/Firmwares/${NORMAL}"
+        cp ${PATH_PROJECT}/Firmwares/* ${PATH_FIRMARES}
     fi
 
     # check bootloader1 image
