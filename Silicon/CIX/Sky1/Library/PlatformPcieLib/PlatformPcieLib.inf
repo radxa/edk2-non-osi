@@ -1,6 +1,6 @@
 #/** @file
 #
-#  Copyright 2022 Cix Technology (Shanghai) Co., Ltd. All Rights Reserved.
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
 #
 #**/
 
@@ -22,3 +22,15 @@
 [LibraryClasses]
   PcdLib
   IoLib
+
+[Pcd]
+  gCixTokenSpaceGuid.PcdPcieRootPort0BusBase
+  gCixTokenSpaceGuid.PcdPcieRootPort1BusBase
+  gCixTokenSpaceGuid.PcdPcieRootPort2BusBase
+  gCixTokenSpaceGuid.PcdPcieRootPort3BusBase
+  gCixTokenSpaceGuid.PcdPcieRootPort4BusBase
+  gCixTokenSpaceGuid.PcdPcieRootPort0BusLimit
+  gCixTokenSpaceGuid.PcdPcieRootPort1BusLimit
+  gCixTokenSpaceGuid.PcdPcieRootPort2BusLimit
+  gCixTokenSpaceGuid.PcdPcieRootPort3BusLimit
+  gCixTokenSpaceGuid.PcdPcieRootPort4BusLimit

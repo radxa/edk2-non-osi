@@ -45,21 +45,3 @@ CIX P1 edk2 code is base on as follows:
 
     FS0:\>FlashUpdate.efi -f cix_flash_all.bin
 
-# How to add new board (not only this way, just for reference)
-  1. renew edk2-platforms/Platform/CIX/Sky1/Merak and customize your settings
-    For Example:
-        use new folder edk2-platforms/Platform/CIX/Sky1/NewBoard with Newboard.dsc and Newboard.fdf
-
-  2. Copy edk2-non-osi/Platform/CIX/Sky1/PackageTool/memory_config_tool_common to your board folder and customize your settings
-    For Example:
-        edk2-platforms/Platform/CIX/Sky1/NewBoard/memory_config_tool_common
-
-  3. If need update your customized low level firmware like ec firmware, please put your firmware to your NewBoard/Firmwares
-    For Example:
-        edk2-platforms/Platform/CIX/Sky1/NewBoard/Firmwares/ec_firmware.bin
-
-  4. Run build_and_package.sh with board name parameter to build your flash file
-    For Example:
-
-    $ ./build_and_package.sh Newboard
-

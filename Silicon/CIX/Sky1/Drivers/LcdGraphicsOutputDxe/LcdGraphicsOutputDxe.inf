@@ -1,6 +1,6 @@
 /** @file
  *
- *  Copyright 2023 Cix Technology (Shanghai) Co., Ltd. All Rights Reserved. *
+ *  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved. *
  *
  *  SPDX-License-Identifier: BSD-2-Clause-Patent
  *
@@ -25,6 +25,7 @@
   ArmPlatformPkg/ArmPlatformPkg.dec
   MdeModulePkg/MdeModulePkg.dec
   Silicon/CIX/Sky1/CixPkg.dec
+  Platform/CIX/Sky1/Sky1.dec
 
 [LibraryClasses]
   ArmLib
@@ -42,6 +43,7 @@
   gCixCrtcProtocolGuid
   gCixConnectorProtocolGuid
   gCixConfigParamsManageProtocolGuid
+  gCixPlatformConfigParamsManageProtocolGuid
 
 [FeaturePcd]
   gArmPlatformTokenSpaceGuid.PcdGopDisableOnExitBootServices
