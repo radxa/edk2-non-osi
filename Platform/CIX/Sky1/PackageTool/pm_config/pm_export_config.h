@@ -6,6 +6,20 @@
 
 #include <stdint.h>
 
+#define TABLE_SIGNATURE( x, y, m, n )                                              \
+    ( uint32_t )( ( 0xFF & (uint8_t)( x ) ) | ( ( 0xFF & (uint8_t)( y ) ) << 8 ) | \
+                  ( ( 0xFF & (uint8_t)( m ) ) << 16 ) | ( ( 0xFF & (uint8_t)( n ) ) << 24 ) )
+#define TABLE_ALIGN_U32(_size)            (((_size) + 0x3) & ~0x3)
+#define TABLE_ALIGN_U32_PADDING(_size)    (TABLE_ALIGN_U32(_size) - (_size))
+
+#define PM_CONFIG_SIGNATURE      TABLE_SIGNATURE( 'P', 'M', 'C', 'F' )
+
+/* pm-config current supported version (v2.1) */
+#define PM_CONFIG_VERSION_MAJOR  2
+#define PM_CONFIG_VERSION_MINOR  1
+
+#include "cfg_dpm_pwrrail.h"
+
 #pragma pack(push, 1)
 
 /* basics */
@@ -24,10 +38,51 @@ typedef union {
 #define OPP_DXS_MAX         13
 #define OPP_PWR_RAIL_MAX    8
 typedef struct {
-    config_data_t   pmic_scheme;
-    uint16_t        opp_max[OPP_DXS_MAX];
-    uint32_t        edp[OPP_PWR_RAIL_MAX][2];
+    config_data_t    pmic_scheme;
+#define OPP_NO_LIMIT        4000
+    uint16_t         opp_max[OPP_DXS_MAX];
+    DPM_PWR_RAIL_CFG edp_cfg[OPP_PWR_RAIL_MAX];
 } pm_config_pmic_t;
+
+typedef struct {
+    config_data_t   sensor_valid;   //raw_data 0:connect to EC, 1:connect to soc i2c, others:invalid.
+    union {
+        uint32_t reg_id;
+        struct {
+            uint8_t i2c_ctrl;       // 0/1/2/3 is valid
+            uint8_t i2c_addr;
+            uint8_t sensor_type;
+        };
+    };
+} board_sensor_config_t;
+
+/* Thermal Sensor */
+typedef struct {
+    config_data_t   thermal_trip_soc;          // SoC thermal-trip trigger point in degree centigrade
+
+    uint8_t         weight_valid;              // 0: the following union of weight is valid, 1: invalid
+    union {
+        uint8_t     weight[13];
+        struct {
+            uint8_t weight_vpu_sensor;         // Sensor 0
+            uint8_t weight_gpu_bottom_sensor;  // Sensor 1
+            uint8_t weight_gpu_top_sensor;     // Sensor 2
+            uint8_t weight_soc_brc_sensor;     // Sensor 3  bottom-right corner
+            uint8_t weight_ddr_bottom_sensor;  // Sensor 4
+            uint8_t weight_ddr_top_sensor;     // Sensor 5
+            uint8_t weight_ci700_sensor;       // Sensor 6
+            uint8_t weight_npu_sensor;         // Sensor 7
+            uint8_t weight_cpu_m1_sensor;      // Sensor 8
+            uint8_t weight_cpu_b1_sensor;      // Sensor 9
+            uint8_t weight_cpu_m0_sensor;      // Sensor 10
+            uint8_t weight_cpu_b0_sensor;      // Sensor 11
+            uint8_t weight_soc_trc_sensor;     // Sensor 12 top-right corner
+        };
+    };
+    board_sensor_config_t board_sensor1;
+    board_sensor_config_t board_sensor2;
+
+} pm_config_pvt_t;
 
 #define MAX_FAN_NUM (2)
 #define MAX_FAN_TABLE_ENTRIES (9)
@@ -44,15 +99,16 @@ typedef struct {
     int8_t down_temp;
 } rpm_entry_t;
 
-typedef struct fan_dev_config {
-    rpm_entry_t rpm_table[FAN_MODE_MAX][MAX_FAN_TABLE_ENTRIES];
-    uint8_t rpm_table_items[FAN_MODE_MAX];
-    uint8_t rpm_table_valid[FAN_MODE_MAX]; //0:valid, others:invalid
+typedef struct pm_config_fan_config {
+    config_data_t fan_valid;
+    uint8_t       rpm_table_valid[FAN_MODE_MAX]; // 0:valid, 1:invalid (for flash space default 1)
+    uint8_t       rpm_table_items[FAN_MODE_MAX];
+    rpm_entry_t   rpm_table[FAN_MODE_MAX][MAX_FAN_TABLE_ENTRIES];
     config_data_t fan_id;
     config_data_t fan_polarity;
     config_data_t scaleup_margin;
     config_data_t pwm_freq;
-} fan_dev_config_t;
+} pm_config_fan_t;
 
 /* OPP table */
 #define DOMAIN_MAX_OPP_ENTRIES  13
@@ -71,21 +127,35 @@ typedef struct domain_opp_config {
     dvfs_opp_t  opp_table[DOMAIN_MAX_OPP_ENTRIES];
 } domain_opp_config_t;
 
+typedef struct pm_config_opp {
+    uint8_t             opp_valid;
+    domain_opp_config_t opps[DOMAIN_MAX_COUNT];
+} pm_config_opp_t;
+
+typedef struct pm_config_log {
+    config_data_t       log_enable;
+    config_data_t       uart_baudrate;
+} pm_config_log_t;
+
+typedef struct {
+    pm_config_pmic_t        pmic_config;
+    pm_config_pvt_t         pvt_config;
+    pm_config_opp_t         opp_config;
+    pm_config_fan_t         fan_config[MAX_FAN_NUM];
+    pm_config_log_t         log_config;
+    uint8_t                 reserved[115];
+} pm_export_config_t;
+
 typedef struct {
     uint32_t                version_major;
     uint32_t                version_minor;
     uint32_t                timestamp;
-    pm_config_pmic_t        pmic_config;
-    fan_dev_config_t        fan_config[MAX_FAN_NUM];
-    uint8_t                 _internal[387];
-    uint8_t                 opp_valid;
-    domain_opp_config_t     opps[DOMAIN_MAX_COUNT];
-} pm_export_config_t;
+    uint32_t                signature;
 
-typedef struct {
-    pm_export_config_t config;
-    uint8_t                 padding[2];
-    /* undertermined position */
+    pm_export_config_t      config;
+
+    uint8_t                 padding[TABLE_ALIGN_U32_PADDING(sizeof(pm_export_config_t))];
+
     uint32_t                crc1;
     uint32_t                crc2;
 } pm_export_config_crc_t;

@@ -24,7 +24,7 @@
 #define PROJECT_NAME    "csu_pm"
 #define VALID           (0)
 #define INVALID         (1)
-pm_export_config_crc_t g_config;
+pm_export_config_crc_t  g_config;
 
 _Static_assert(((sizeof(g_config) - sizeof(g_config.crc1) - sizeof(g_config.crc2)) & 0x3) == 0,
     "PM config block size must be 4-byte aligned!");
@@ -55,7 +55,7 @@ static bool double_check_sum(void * start, uint32_t length, uint64_t * sum64, bo
     return false;
 }
 
-#if BIOS_OPP_TABLE_CONFIG
+#if PM_OPP_TABLE_CONFIG
 static uint32_t volt_abs(uint32_t a, uint32_t b)
 {
     if (a >= b) {
@@ -148,32 +148,144 @@ static void dump_pmic_config(pm_config_pmic_t* config)
     printf("\tedp_cfg:\n");
 
     for (i = 0; i < OPP_PWR_RAIL_MAX; i++) {
-        DPM_PWR_RAIL_CFG edp_cfg;
-        memcpy(&edp_cfg, config->edp[i], sizeof(edp_cfg));
-        printf("\t\tEDP %zu: vr_type %u, pwr_cap %u, i2c_port %u, i2c_addr 0x%02x, i2c_buck %u, vboot_mV %u, delta_mV %u\n",
-            i, edp_cfg.vr_type, edp_cfg.pwr_cap, edp_cfg.i2c_port, edp_cfg.i2c_addr,
-            edp_cfg.i2c_buck, edp_cfg.vboot_mV, edp_cfg.delta_mV);
+        DPM_PWR_RAIL_CFG *cfg = &config->edp_cfg[i];
+        printf("\t\tEDP %zu: vr_type %u, pwr_cap %5u, i2c_port %u, i2c_addr 0x%02x, i2c_buck %u, vboot_mV %3u, delta_mV %u\n",
+            i, cfg->vr_type, cfg->pwr_cap, cfg->i2c_port, cfg->i2c_addr,
+            cfg->i2c_buck, cfg->vboot_mV, cfg->delta_mV);
     }
 }
 
-static void dump_opp_config(domain_opp_config_t *config)
+static void dump_opp_config(pm_config_opp_t * opp_config)
 {
     unsigned int i;
     uint16_t j;
 
     for (i = 0; i < DOMAIN_MAX_COUNT; i++) {
-        if (config->size == 0xFFFF) {
+        if (opp_config->opps[i].size == 0xFFFF) {
             continue;
         }
+
+        domain_opp_config_t * config = &opp_config->opps[i];
         printf("domain %u\n", i);
         for (j = 0; j < config->size; j++) {
-            printf(" %s opp %u: level %u, freq(kHz) %u, volt(mV) %u, pwr(mW/mV) %u\n",
-                j == config->sustained_idx ? "*" : " ", j,
-                config->opp_table[j].level, config->opp_table[j].frequency,
-                config->opp_table[j].voltage, config->opp_table[j].power);
+            printf(" %s opp %u: level %4u, ",
+                j == config->sustained_idx ? "*" : " ", j, config->opp_table[j].level);
+
+            if (config->opp_table[j].frequency) {
+                printf(", freq(kHz) %7u", config->opp_table[j].frequency);
+            } else {
+                printf(", freq(kHz) -------");
+            }
+
+            if (config->opp_table[j].voltage) {
+                printf(", volt(mV) %3u", config->opp_table[j].voltage);
+            } else {
+                printf(", volt(mV) ---");
+            }
+
+            if (config->opp_table[j].power) {
+                printf(", pwrCost %3u", config->opp_table[j].voltage);
+            }
+
+            printf("\n");
         }
         printf("\n");
         config++;
+    }
+}
+
+static void dump_valid_flag(config_data_t valid)
+{
+    if (valid.fields.valid == PM_CONFIG_INVALID) {
+        printf("INVALID\n");
+    } else {
+        printf("VALID, data:%d\n", valid.fields.raw_data);
+    }
+
+}
+
+static void dump_fan_config(pm_config_fan_t* config, uint32_t num)
+{
+    for (uint32_t i = 0; i < num; i++) {
+        printf("fan[%d]:\n", i);
+        if (config[i].fan_valid.fields.valid == PM_CONFIG_INVALID) {
+            printf("\tNULL\n");
+        } else {
+            for (uint32_t j = 0; j < FAN_MODE_MAX; j++) {
+                if (config[i]. rpm_table_valid[j] == 0) {
+                    printf("\ttable[%d]:\n", j);
+                    for (uint32_t k = 0; k < config[i].rpm_table_items[j]; k++) {
+                        printf("\t%d: %4d   %3d   %3d\n", k, (uint32_t)config[i].rpm_table[j][k].rpm, (int32_t)config[i].rpm_table[j][k].up_temp, (int32_t)config[i].rpm_table[j][k].down_temp);
+                    }
+                }
+            }
+
+            printf("\tfan_id:\t\t");dump_valid_flag(config[i].fan_id);
+            printf("\tpolarity:\t");dump_valid_flag(config[i].fan_polarity);
+            printf("\tscaleup_margin:\t");dump_valid_flag(config[i].scaleup_margin);
+            printf("\tpwm_freq:\t");dump_valid_flag(config[i].pwm_freq);
+        }
+    }
+}
+
+static void dump_board_sensor(board_sensor_config_t* config)
+{
+    if (config->sensor_valid.fields.valid == PM_CONFIG_INVALID) {
+        printf("\tINVALID\n");
+    } else {
+        if (config->sensor_valid.fields.raw_data == 0) {
+            printf("\tconnect to EC, reg:0x%x\n", config->reg_id);
+        } else if (config->sensor_valid.fields.raw_data == 1) {
+            printf("\tconnect to SOC, i2c_ctrl:%d, i2c_addr:0x%x\n", config->i2c_ctrl, config->i2c_addr);
+        }
+    }
+}
+
+static void dump_pvt_config(pm_config_pvt_t *config)
+{
+    char* name[] = {
+        "vpu_sensor",
+        "gpu_bottom_sensor",
+        "gpu_top_sensor",
+        "soc_brc_sensor",
+        "ddr_bottom_sensor",
+        "ddr_top_sensor",
+        "ci700_sensor",
+        "npu_sensor",
+        "cpu_m1_sensor",
+        "cpu_b1_sensor",
+        "cpu_m0_sensor",
+        "cpu_b0_sensor",
+        "soc_trc_sensor",
+    };
+    printf("\ttrip point:");dump_valid_flag(config->thermal_trip_soc);
+    if (config->weight_valid == 0) {
+        printf("\tsensor weight:\n");
+        for (uint32_t i = 0; i < 13; i++) {
+            printf("%s\t\t: %d", name[i], config->weight[i]);
+        }
+    } else {
+        printf("\tsensor weight: INVALID\n");
+    }
+
+    printf("\tboard sensor 1:\n");
+    dump_board_sensor(&config->board_sensor1);
+    printf("\tboard sensor 2:\n");
+    dump_board_sensor(&config->board_sensor2);
+}
+
+static void dump_log_config(pm_config_log_t * log_config)
+{
+    if (log_config->log_enable.fields.valid == PM_CONFIG_VALID) {
+        printf("\tlog_enable: VALID, raw_data %08X\n", log_config->log_enable.fields.raw_data);
+    } else {
+        printf("\tlog_enable: INVALID\n");
+    }
+
+    if (log_config->uart_baudrate.fields.valid == PM_CONFIG_VALID) {
+        printf("\tuart_baudrate: %d\n", log_config->uart_baudrate.fields.raw_data);
+    } else {
+        printf("\tuart_baudrate: INVALID\n");
     }
 }
 
@@ -181,18 +293,119 @@ static void dump_config()
 {
     pm_export_config_t *config = &g_config.config;
 
-    printf("sizeof(g_config)=%zu, sizeof(opps)=%zu\n", sizeof(g_config), sizeof(config->opps));
+    printf("sizeof(g_config)=%zu, sizeof(opps)=%zu\n", sizeof(g_config), sizeof(config->opp_config.opps));
 
-    printf("version:%u.%u\n", config->version_major, config->version_minor);
-    printf("timestamp:%u\n", config->timestamp);
+    printf("version   : %u.%u\n", g_config.version_major, g_config.version_minor);
+    printf("timestamp : %u - %s\n", g_config.timestamp, ctime((const time_t *)&g_config.timestamp));
     printf("pmic config:\n");
     dump_pmic_config(&config->pmic_config);
 
     printf("OPP config\n");
-    dump_opp_config(config->opps);
+    dump_opp_config(&config->opp_config);
+
+    printf("PVT config:\n");
+    dump_pvt_config(&config->pvt_config);
+
+    printf("Fan config:\n");
+    dump_fan_config(config->fan_config, MAX_FAN_NUM);
+
+    printf("Log config:\n");
+    dump_log_config(&config->log_config);
 
     printf("crc check: cka:0x%08x, ckb:0x%08x\n", g_config.crc1, g_config.crc2);
 }
+
+#if (PM_FAN_TABLE_CONFIG)
+static int32_t check_rpm_table(rpm_entry_t*  rpm_table, uint32_t num)
+{
+
+    for (uint32_t i = 1; i < num; i++) {
+        if (rpm_table[i].rpm <= rpm_table[i - 1].rpm ||
+            rpm_table[i].up_temp <= rpm_table[i - 1].up_temp ||
+            rpm_table[i].down_temp <= rpm_table[i - 1].down_temp) {
+                printf("rpm entry %d error\n", i);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static int32_t check_fan_table(pm_config_fan_t* config, uint32_t num)
+{
+    uint32_t i = 0;
+    pm_config_fan_t* ptr = NULL;
+    for (i = 0; i < num; i++) {
+        ptr = &config[i];
+        if (ptr->fan_id.fields.valid == PM_CONFIG_VALID && ptr->fan_id.fields.raw_data >= MAX_FAN_NUM) {
+            return -1;
+        }
+        for(fan_mode_t m = FAN_MODE_NORMAL; m < FAN_MODE_MAX; m++) {
+            if (ptr->rpm_table_valid[m] == PM_CONFIG_INVALID) {
+                continue;
+            }
+
+            if (ptr->rpm_table_items[m] < 2 || ptr->rpm_table_items[m] > MAX_FAN_TABLE_ENTRIES) {
+                return -1;
+            }
+
+            if (check_rpm_table(ptr->rpm_table[m], ptr->rpm_table_items[m])) {
+                printf("fan_config[%d].rpm_table[%d] error\n", i, m);
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+#endif
+
+#if PM_PVT_SENSOR_CONFIG
+static int32_t check_board_sensor(board_sensor_config_t* config)
+{
+    if (config->sensor_valid.fields.valid == PM_CONFIG_VALID) {
+        if (config->sensor_valid.fields.raw_data > 1) {
+            printf("board_sensor.sensor_valid invalid\n");
+            return -1;
+        }
+        if (config->sensor_valid.fields.raw_data == 0) {//memory type
+            if (config->reg_id < 0x10 || config->reg_id >= 0x20) {
+                printf("board_sensor.reg_id invalid\n");
+                return -1;
+            }
+        }
+        if (config->sensor_valid.fields.raw_data == 1) {//i2c type
+            if (config->i2c_ctrl > 3) {
+                printf("board_sensor.i2c_ctrl invalid\n");
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int32_t check_pvt_config(pm_config_pvt_t* config)
+{
+    uint32_t i = 0;
+    uint32_t total_weight = 0;
+    if (config->weight_valid == 0) {
+        for (i = 0; i < 13; i ++) {
+            total_weight += config->weight[i];
+        }
+        if (total_weight != 1024) {
+            printf("all weight sum should equal 1024\n");
+            return -1;
+        }
+    }
+
+
+    if (check_board_sensor(&config->board_sensor1) || check_board_sensor(&config->board_sensor2)) {
+        return -1;
+    }
+
+    return 0;
+}
+#endif
 
 int main(int argc, char **argv)
 {
@@ -201,35 +414,59 @@ int main(int argc, char **argv)
     FILE* bin_file = NULL;
     pm_export_config_t* config = &g_config.config;
 
+    (void)config;
+
     memset(&g_config, 0xff, sizeof(g_config));
 
     // version & timestamp
-    config->version_major = 1;
-    config->version_minor = 0;
-    config->timestamp = (uint32_t)time(NULL);
+    g_config.version_major = PM_CONFIG_VERSION_MAJOR;
+    g_config.version_minor = PM_CONFIG_VERSION_MINOR;
+    g_config.signature = PM_CONFIG_SIGNATURE;
+    g_config.timestamp = (uint32_t)time(NULL);
 
-    //pmic config:
+    // pmic config
+#if PM_PMIC_CONFIG
     memcpy(&config->pmic_config, &pmic_config, PMIC_CONFIG_SIZE);
+#endif
 
-    //fan config
+#if PM_PVT_SENSOR_CONFIG
+    if (check_pvt_config(&pvt_config)) {
+        printf("Bad Pvt Config\n");
+        return -1;
+    }
+    memcpy(&config->pvt_config,   &pvt_config,   sizeof(config->pvt_config));
+#endif
+
+#if PM_FAN_TABLE_CONFIG
+    // fan config
+    if (check_fan_table(fan_config, MAX_FAN_NUM)) {
+
+        printf("Bad Fan Table\n");
+        return -1;
+    }
     memcpy(config->fan_config,   fan_config,   FAN_CONFIG_SIZE);
+#endif
 
-    //opp table config
-#if BIOS_OPP_TABLE_CONFIG
+#if PM_OPP_TABLE_CONFIG
     if (!check_opp_table()) {
         printf("Bad OPP table\n");
         return -1;
     }
 
-    config->opp_valid = BIOS_CONFIG_VALID;
+    // update to valid which was invalid setting by memset()
+    config->opp_config.opp_valid = PM_CONFIG_VALID;
 
     for (size_t i = 0; i < ARRAY_LENGTH(dom_opps); i++) {
         if (dom_opps[i]) {
-            memcpy(&config->opps[i], dom_opps[i], sizeof(config->opps[i]));
+            memcpy(&config->opp_config.opps[i], dom_opps[i], sizeof(config->opp_config.opps[i]));
         } else {
-            memset(&config->opps[i], 0x00, sizeof(config->opps[i]));
+            memset(&config->opp_config.opps[i], 0x00, sizeof(config->opp_config.opps[i]));
         }
     }
+#endif
+
+#if PM_LOG_CONFIG
+    memcpy(&config->log_config, &log_config, sizeof(config->log_config));
 #endif
 
     // checksum
