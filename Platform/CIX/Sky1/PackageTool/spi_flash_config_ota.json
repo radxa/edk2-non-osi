@@ -6,8 +6,8 @@
     "image_count": 1,
     "image_header_groups": [{
             "image_type": 7,
-            "address": "0x3F0000",
-            "size": "0x3D0000",
+            "address": "0x3FE000",
+            "size": "0x402000",
             "file": "Firmwares/bootloader3.img"
         }
     ]
