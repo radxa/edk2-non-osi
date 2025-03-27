@@ -45,6 +45,8 @@
   gEfiI2cMasterProtocolGuid
 
 [Pcd]
+  gCixPlatformTokenSpaceGuid.PcdHidI2cBus
+  gCixPlatformTokenSpaceGuid.PcdHidI2cIrqPin
 
 [Depex]
   TRUE

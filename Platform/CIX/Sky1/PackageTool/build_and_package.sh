@@ -238,6 +238,9 @@ case "$UEFI_PROJECT" in
 ("Edge")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
+("CloudBook")
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    ;;
 ("O6")
     UEFI_PROJECT_PATH="Platform/Radxa/Orion"
     ;;

@@ -29,6 +29,7 @@
   UefiLib
   UefiRuntimeLib
   PostCodeLib
+  ShMemLib
 
 [Guids]
 
