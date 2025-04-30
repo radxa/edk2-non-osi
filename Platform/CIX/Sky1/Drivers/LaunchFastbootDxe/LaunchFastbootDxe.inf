@@ -49,7 +49,7 @@
   gCixSocInfoProtocolGuid
 
 [Guids]
-
+  gCixExitConsoleCallBackGuid
 
 [FeaturePcd]
 

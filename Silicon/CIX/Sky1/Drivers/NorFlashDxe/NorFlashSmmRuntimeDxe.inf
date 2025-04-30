@@ -34,7 +34,7 @@
   IoLib
   BaseLib
   DebugLib
-  # HobLib
+  HobLib
   UefiLib
   UefiDriverEntryPoint
   UefiBootServicesTableLib
@@ -42,19 +42,18 @@
   DxeServicesTableLib
   NorFlashLib
   PostCodeLib
-  # FirmwareParseLib
 
 [Guids]
-  # gEfiSystemNvDataFvGuid
-  # gEfiVariableGuid
-  # gEfiAuthenticatedVariableGuid
+  gEfiSystemNvDataFvGuid
+  gEfiVariableGuid
+  gEfiAuthenticatedVariableGuid
   gEfiEventVirtualAddressChangeGuid
-  # gEdkiiNvVarStoreFormattedGuid     ## PRODUCES ## PROTOCOL
+  gEdkiiNvVarStoreFormattedGuid     ## PRODUCES ## PROTOCOL
   gCixNorFlashDevicePathGuid
 
 [Protocols]
   gEfiDevicePathProtocolGuid
-  # gEfiFirmwareVolumeBlockProtocolGuid
+  gEfiFirmwareVolumeBlockProtocolGuid
   gEfiDiskIoProtocolGuid
   gEfiCpuArchProtocolGuid
   gCixXspiInfoProtocolGuid
@@ -63,15 +62,15 @@
   gCixResetProtocolGuid
 
 [Pcd.common]
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase
-  # gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize
   gCixTokenSpaceGuid.PcdNorFlashNvramAddr
   gCixTokenSpaceGuid.PcdNorFlashNvramSize
 

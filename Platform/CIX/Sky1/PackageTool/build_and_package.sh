@@ -13,6 +13,7 @@ export PATH_OUT="${WORKSPACE}/output"
 
 export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
 export UEFI_PROJECT="Merak"
+export UEFI_PROJECT_FOLDER="edk2-platforms"
 export UEFI_PROJECT_PATH="Platform/CIX/Sky1"
 export GCC5_AARCH64_PREFIX="${WORKSPACE}/tools/gcc/${ARM_TOOLCHAIN_ELF}/bin/aarch64-none-elf-"
 export IASL_PREFIX="${WORKSPACE}/tools/acpica/generate/unix/bin/"
@@ -118,7 +119,7 @@ build_pmcfg(){
 exec_cix_mkimage() {
     export PATH_PACKAGE_TOOL="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool"
     export PATH_FIRMARES="${PATH_OUT}/Firmwares"
-    export PATH_PROJECT="${WORKSPACE}/edk2-platforms/${UEFI_PROJECT_PATH}/${UEFI_PROJECT}"
+    export PATH_PROJECT="${WORKSPACE}/${UEFI_PROJECT_FOLDER}/${UEFI_PROJECT_PATH}/${UEFI_PROJECT}"
 
     # copy require files to output
     cp -r "${PATH_PACKAGE_TOOL}/Firmwares/" "${PATH_OUT}"
@@ -239,6 +240,11 @@ case "$UEFI_PROJECT" in
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
 ("CloudBook")
+    UEFI_PROJECT_FOLDER="edk2"
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    ;;
+("MGP1WSB")
+    UEFI_PROJECT_FOLDER="edk2"
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
 ("O6")

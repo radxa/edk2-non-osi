@@ -20,15 +20,6 @@
   MdeModulePkg/MdeModulePkg.dec
   Platform/CIX/Sky1/Sky1.dec
 
-[LibraryClasses]
-  UefiApplicationEntryPoint
-  UefiLib
-  PcdLib
-  DebugLib
-  BootLib
-  LibUfdt
-  MiniFastbootLib
-
 [Guids]
 
 [Protocols]
