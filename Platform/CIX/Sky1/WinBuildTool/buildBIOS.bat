@@ -37,15 +37,42 @@ cd %WORKSPACE%
 SET PLATFORM_COMMIT_ID=%PLATFORM_COMMIT_ID:~0,8%
 
 call build -a AARCH64 -t %TOOLCHAIN% -p Platform\CIX\Sky1\%PACKAGE_NAME%\%PACKAGE_NAME%.dsc ^
--D BOARD_NAME=%PACKAGE_NAME% ^
+-D BOARD_NAME=evb ^
 -D COMMIT_HASH=%PLATFORM_COMMIT_ID% ^
 -D COMPILE_BUILD_DATE=%DATATIME% ^
 -D VARIABLE_TYPE=SPI ^
+-D SMP_ENABLE=1 ^
 -D STANDARD_MM=TRUE ^
 -D ACPI_BOOT_ENABLE=1 ^
 -b %UEFI_TARGET% 
 
 if %errorlevel% NEQ 0 goto :FAIL
+
+if exist %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\mem_config (
+    cd %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\mem_config
+    make -f MakefileWin clean
+    make -f MakefileWin
+    if %errorlevel% NEQ 0 goto :FAIL
+
+    if not exist %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\mem_config\memory_config.bin (
+        goto :FAIL
+    )
+    copy /Y %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\mem_config\memory_config.bin %PACKAGE_TOOL_PATH%\Firmwares\memory_config.bin
+    if %errorlevel% NEQ 0 goto :FAIL
+)
+
+if exist %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\pm_config (
+    cd %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\pm_config
+    make -f MakefileWin clean
+    make -f MakefileWin
+    if %errorlevel% NEQ 0 goto :FAIL
+
+    if not exist %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\pm_config\csu_pm_config.bin (
+        goto :FAIL
+    )
+    copy /Y %WORKSPACE%\edk2-platforms\Platform\CIX\Sky1\%PACKAGE_NAME%\pm_config\csu_pm_config.bin %PACKAGE_TOOL_PATH%\Firmwares\csu_pm_config.bin
+    if %errorlevel% NEQ 0 goto :FAIL
+)
 
 cd %PACKAGE_TOOL_PATH%
 copy /Y %WORKSPACE%\Build\%PACKAGE_NAME%\%UEFI_TARGET%_%TOOLCHAIN%\FV\%FD_NAME% %PACKAGE_TOOL_PATH%\Firmwares\%FD_NAME%

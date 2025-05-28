@@ -45,6 +45,8 @@
   gCixResetProtocolGuid
   gCixClockProtocolGuid
   gCixTypecPhyProtocolGuid
+  gEfiEdidDiscoveredProtocolGuid
+  gEfiEdidActiveProtocolGuid
 
 [Depex]
   TRUE

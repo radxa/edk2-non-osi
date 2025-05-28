@@ -28,6 +28,7 @@
   BaseMemoryLib
   BaseLib
   UefiLib
+  IoLib
   UefiBootServicesTableLib
 
 [Guids]

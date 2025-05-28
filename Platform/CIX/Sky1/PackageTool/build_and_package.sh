@@ -232,6 +232,10 @@ if [ ! -z "$1" ]; then
     UEFI_PROJECT="$1"
 fi
 
+if [ -e "$WORKSPACE/edk2-project" ]; then
+    PACKAGES_PATH="${PACKAGES_PATH}:$WORKSPACE/edk2-project"
+fi
+
 case "$UEFI_PROJECT" in
 ("Merak")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
