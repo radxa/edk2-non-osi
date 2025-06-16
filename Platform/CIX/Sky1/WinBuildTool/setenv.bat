@@ -41,4 +41,17 @@ call edk2\edksetup.bat rebuild
 rem rd /s /Q %WORKSPACE%\Bin
 md  %WORKSPACE%\Bin
 
+if not exist %WORKSPACE%\Build (
+    md %WORKSPACE%\Build
+)
+
+if not exist %WORKSPACE%\Build\Package (
+    md %WORKSPACE%\Build\Package
+)
+
+if not exist %WORKSPACE%\Build\Package\Firmwares (
+    md %WORKSPACE%\Build\Package\Firmwares
+)
+
+
 

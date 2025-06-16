@@ -33,6 +33,7 @@
 
 [Guids]
   gCixMmNorFlashCommunicateGuid
+  gEfiEventVirtualAddressChangeGuid
 
 [Protocols]
   gEfiMmCommunication2ProtocolGuid

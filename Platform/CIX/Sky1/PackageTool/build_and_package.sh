@@ -10,6 +10,8 @@ export  CYAN="\e[36m"
 
 export WORKSPACE=$PWD
 export PATH_OUT="${WORKSPACE}/output"
+export PATH_OUT_PR="${WORKSPACE}/output/pr"
+export PATH_OUT_PR2="${WORKSPACE}/output/pr2"
 
 export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
 export UEFI_PROJECT="Merak"
@@ -121,51 +123,78 @@ exec_cix_mkimage() {
     export PATH_FIRMARES="${PATH_OUT}/Firmwares"
     export PATH_PROJECT="${WORKSPACE}/${UEFI_PROJECT_FOLDER}/${UEFI_PROJECT_PATH}/${UEFI_PROJECT}"
 
+    if [ $# != 1 ]; then
+        echo "Error input parameter for mkimage"
+		exit 1
+	fi
+
+    local build_key_type=$1
+    local path_out_temp
+    local flash_all_file_name
+    local flash_ota_file_name    
+
+    if [[ "${build_key_type}" == "pr" ]]; then
+        path_out_temp="${PATH_OUT_PR}"
+        flash_all_file_name="cix_flash_all"
+        flash_ota_file_name="cix_flash_ota"        
+        cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader1.img" "${path_out_temp}/Firmwares/bootloader1.img"
+        cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader2.img" "${path_out_temp}/Firmwares/bootloader2.img"
+        cp -f "${PATH_PACKAGE_TOOL}/certs/trusted_key_no.crt" "${path_out_temp}/certs/trusted_key_no.crt"
+    else
+        path_out_temp="${PATH_OUT_PR2}"
+        flash_all_file_name="cix_flash_all2"
+        flash_ota_file_name="cix_flash_ota2"
+        cp -f "${PATH_PACKAGE_TOOL}/Firmwares2/bootloader1.img" "${path_out_temp}/Firmwares/bootloader1.img"
+        cp -f "${PATH_PACKAGE_TOOL}/Firmwares2/bootloader2.img" "${path_out_temp}/Firmwares/bootloader2.img"
+        cp -f "${PATH_PACKAGE_TOOL}/certs2/trusted_key_no.crt" "${path_out_temp}/certs/trusted_key_no.crt"
+    fi
+
+    local path_out_firmwares="${path_out_temp}/Firmwares"
+
+
     # copy require files to output
-    cp -r "${PATH_PACKAGE_TOOL}/Firmwares/" "${PATH_OUT}"
+    cp  ${PATH_PACKAGE_TOOL}/Firmwares/*.bin "${path_out_temp}/Firmwares/"
 
-    cp -r "${PATH_PACKAGE_TOOL}/Keys/" "${PATH_OUT}"
+    cp -r "${PATH_PACKAGE_TOOL}/Keys/" "${path_out_temp}"
 
-    cp -r "${PATH_PACKAGE_TOOL}/certs/" "${PATH_OUT}"
-
-    exec_blankfile "${PATH_FIRMARES}/dummy.bin" 8192
+    exec_blankfile "${path_out_temp}/Firmwares/dummy.bin" 8192
 
     # build project specific memory config
     if [[ -e "${PATH_PROJECT}/mem_config" ]]; then
         echo -e "${GREEN}found project specific memory config ${PATH_PROJECT}/mem_config${NORMAL}"
-        build_memcfg "${PATH_FIRMARES}/memory_config.bin"
+        build_memcfg "${path_out_firmwares}/memory_config.bin"
     fi
 
     # build project specific pm config
     if [[ -e "${PATH_PROJECT}/pm_config" ]]; then
         echo -e "${GREEN}found project specific pm config ${PATH_PROJECT}/pm_config${NORMAL}"
-        build_pmcfg "${PATH_FIRMARES}/csu_pm_config.bin"
+        build_pmcfg "${path_out_firmwares}/csu_pm_config.bin"
     fi
 
     # update project specific low level firmware
     if [[ -e "${PATH_PROJECT}/Firmwares/" ]]; then
         echo -e "${GREEN}found project specific firmware folder ${PATH_PROJECT}/Firmwares/${NORMAL}"
-        cp ${PATH_PROJECT}/Firmwares/* ${PATH_FIRMARES}
+        cp ${PATH_PROJECT}/Firmwares/* ${path_out_firmwares}
     fi
 
     # check bootloader1 image
-    if [[ ! -e "${PATH_FIRMARES}/bootloader1.img" ]]; then
-        echo "ERROR: no file ${PATH_FIRMARES}/bootloader1.img"
+    if [[ ! -e "${path_out_firmwares}/bootloader1.img" ]]; then
+        echo "ERROR: no file ${path_out_firmwares}/bootloader1.img"
         exit 1
     fi
 
     # check bootloader2 image
-    if [[ ! -e "${PATH_FIRMARES}/bootloader2.img" ]]; then
-        echo "ERROR: no file ${PATH_FIRMARES}/bootloader2.img"
+    if [[ ! -e "${path_out_firmwares}/bootloader2.img" ]]; then
+        echo "ERROR: no file ${path_out_firmwares}/bootloader2.img"
         exit 1
     fi
 
 	# Copy tools to output
-	cp  "${PATH_PACKAGE_TOOL}/cert_uefi_create_rsa" "${PATH_OUT}"
-	cp  "${PATH_PACKAGE_TOOL}/cix_package_tool" "${PATH_OUT}"
-	cp  "${PATH_PACKAGE_TOOL}/fiptool" "${PATH_OUT}"
-	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_all.json" "${PATH_OUT}"
-	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_ota.json" "${PATH_OUT}"
+	cp  "${PATH_PACKAGE_TOOL}/cert_uefi_create_rsa" "${path_out_temp}"
+	cp  "${PATH_PACKAGE_TOOL}/cix_package_tool" "${path_out_temp}"
+	cp  "${PATH_PACKAGE_TOOL}/fiptool" "${path_out_temp}"
+	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_all.json" "${path_out_temp}"
+	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_ota.json" "${path_out_temp}"
 
     # update project specific spi flash layout
     if [[ -e "${PATH_PROJECT}/spi_flash_config_all.json" ]]; then
@@ -179,39 +208,42 @@ exec_cix_mkimage() {
     fi
 
     # Generate bootloader3 image
-    cd "${PATH_OUT}"
+    cd "${path_out_temp}"
 
     ./cert_uefi_create_rsa --key-alg rsa --key-size 3072 --hash-alg sha256 -p --ntfw-nvctr 223 \
-        --nt-fw-cert ${PATH_OUT}/certs/nt_fw_cert.crt \
-        --nt-fw-key-cert ${PATH_OUT}/certs/nt_fw_key.crt \
-        --nt-fw-key ${PATH_OUT}/Keys/oem_privatekey.pem \
-        --non-trusted-world-key ${PATH_OUT}/Keys/oem_privatekey.pem \
+        --nt-fw-cert ${path_out_temp}/certs/nt_fw_cert.crt \
+        --nt-fw-key-cert ${path_out_temp}/certs/nt_fw_key.crt \
+        --nt-fw-key ${path_out_temp}/Keys/oem_privatekey.pem \
+        --non-trusted-world-key ${path_out_temp}/Keys/oem_privatekey.pem \
         --nt-fw ${PATH_OUT}/SKY1_BL33_UEFI.fd
 
     ./fiptool create \
-        --trusted-key-cert ${PATH_OUT}/certs/trusted_key_no.crt \
-        --nt-fw-key-cert ${PATH_OUT}/certs/nt_fw_key.crt \
-        --nt-fw-cert ${PATH_OUT}/certs/nt_fw_cert.crt \
+        --trusted-key-cert ${path_out_temp}/certs/trusted_key_no.crt \
+        --nt-fw-key-cert ${path_out_temp}/certs/nt_fw_key.crt \
+        --nt-fw-cert ${path_out_temp}/certs/nt_fw_cert.crt \
         --nt-fw ${PATH_OUT}/SKY1_BL33_UEFI.fd \
-        ${PATH_FIRMARES}/bootloader3.img
+        ${path_out_firmwares}/bootloader3.img
     cd -
 
-    if [[ ! -e "${PATH_FIRMARES}/bootloader3.img" ]]; then
-        echo "ERROR: no file ${PATH_FIRMARES}/bootloader3.img"
+    if [[ ! -e "${path_out_firmwares}/bootloader3.img" ]]; then
+        echo "ERROR: no file ${path_out_firmwares}/bootloader3.img"
         exit 1
     fi
 
     # Generate spi flash image
-    cd "${PATH_OUT}"
+    cd "${path_out_temp}"
 
-	 echo "./cix_package_tool -c spi_flash_config_all.json -o cix_flash_all.bin"
-    ./cix_package_tool -c spi_flash_config_all.json -o cix_flash_all.bin
-    echo "./cix_package_tool -c spi_flash_config_ota.json -O cix_flash_ota.bin"
-    ./cix_package_tool -c spi_flash_config_ota.json -O cix_flash_ota.bin
+	 echo "./cix_package_tool -c spi_flash_config_all.json -o ${flash_all_file_name}.bin"
+    ./cix_package_tool -c spi_flash_config_all.json -o ${flash_all_file_name}.bin
+    cp ${flash_all_file_name}.bin ${PATH_OUT}/${flash_all_file_name}.bin
+
+    echo "./cix_package_tool -c spi_flash_config_ota.json -O ${flash_ota_file_name}.bin"
+    ./cix_package_tool -c spi_flash_config_ota.json -O ${flash_ota_file_name}.bin
+    cp ${flash_ota_file_name}.bin ${PATH_OUT}/${flash_ota_file_name}.bin
 
     cd -
 
-    echo -e "${GREEN}Generate ${PATH_OUT}/cix_flash_all.bin successful!${NORMAL}"
+    echo -e "${GREEN}Generate ${PATH_OUT}/${flash_all_file_name}.bin successful!${NORMAL}"
 
 }
 
@@ -228,6 +260,20 @@ if [[ ! -e "${PATH_OUT}" ]]; then
     mkdir -p "${PATH_OUT}"
 fi
 
+if [[ ! -e "${PATH_OUT_PR}" ]]; then
+    mkdir -p "${PATH_OUT_PR}"
+    mkdir -p "${PATH_OUT_PR}/Firmwares"
+    mkdir -p "${PATH_OUT_PR}/Keys"
+    mkdir -p "${PATH_OUT_PR}/certs"
+fi
+
+if [[ ! -e "${PATH_OUT_PR2}" ]]; then
+    mkdir -p "${PATH_OUT_PR2}"
+    mkdir -p "${PATH_OUT_PR2}/Firmwares"
+    mkdir -p "${PATH_OUT_PR2}/Keys"
+    mkdir -p "${PATH_OUT_PR2}/certs"
+fi  
+    
 if [ ! -z "$1" ]; then
     UEFI_PROJECT="$1"
 fi
@@ -244,11 +290,15 @@ case "$UEFI_PROJECT" in
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
 ("CloudBook")
-    UEFI_PROJECT_FOLDER="edk2"
+    UEFI_PROJECT_FOLDER="edk2-project"
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
 ("MGP1WSB")
-    UEFI_PROJECT_FOLDER="edk2"
+    UEFI_PROJECT_FOLDER="edk2-project"
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    ;;
+("SixUnited")
+    UEFI_PROJECT_FOLDER="edk2-project"
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     ;;
 ("O6")
@@ -265,4 +315,5 @@ echo "Build UEFI Project $UEFI_PROJECT with PATH ${UEFI_PROJECT_PATH}"
 set -e
 
 exec_build_uefi
-exec_cix_mkimage
+exec_cix_mkimage pr
+exec_cix_mkimage pr2
