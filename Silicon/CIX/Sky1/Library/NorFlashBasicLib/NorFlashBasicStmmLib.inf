@@ -1,0 +1,40 @@
+#/** @file
+#  Copyright 2024 - 2025 Cix Technology Group Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = NorFlashBasicStmmLib
+  FILE_GUID                      = C9F9BB22-391F-4021-9285-6B49F0B55DF9
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = NorFlashBasicLib
+  CONSTRUCTOR                    = NorFlashBasicLibContructor
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  DebugLib
+  TimerLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+
+[Guids]
+  gCixMmNorFlashCommunicateGuid
+
+[Protocols]
+  gEfiMmCommunication2ProtocolGuid
+
+[Binaries.AARCH64]
+  LIB|NorFlashBasicStmmLib.lib|*
+

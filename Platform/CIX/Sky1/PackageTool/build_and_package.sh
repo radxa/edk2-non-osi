@@ -20,6 +20,8 @@ export UEFI_PROJECT_PATH="Platform/CIX/Sky1"
 export GCC5_AARCH64_PREFIX="${WORKSPACE}/tools/gcc/${ARM_TOOLCHAIN_ELF}/bin/aarch64-none-elf-"
 export IASL_PREFIX="${WORKSPACE}/tools/acpica/generate/unix/bin/"
 export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
+export OS_SUPPORT_TYPE="common"
+export FASTBOOT_LOAD_TYPE="disable"
 
 exec_blankfile() {
 	for ((i=0;i<$2;i++))
@@ -66,10 +68,17 @@ local UEFI_DSC_FILE="${UEFI_PROJECT_PATH}/${UEFI_PROJECT}/${UEFI_PROJECT}.dsc"
 local VARIABLE_TYPE=SPI
 local STMM_SUPPORT=TRUE
 
-build -a AARCH64 -t GCC5 -p $UEFI_DSC_FILE -b $UEFI_TARGET -D BOARD_NAME=$BOARD -D BUILD_DATE=$BUILD_DATE -D COMMIT_HASH=$COMMIT_HASH -D SMP_ENABLE=1 -D ACPI_BOOT_ENABLE=1 -D FASTBOOT_LOAD=$FASTBOOT_LOAD -D VARIABLE_TYPE=$VARIABLE_TYPE -D STANDARD_MM=$STMM_SUPPORT
+build -a AARCH64 -t GCC5 -p $UEFI_DSC_FILE -b $UEFI_TARGET -D BOARD_NAME=$BOARD -D BUILD_DATE=$BUILD_DATE -D COMMIT_HASH=$COMMIT_HASH -D SMP_ENABLE=1 -D ACPI_BOOT_ENABLE=1 -D FASTBOOT_LOAD=$FASTBOOT_LOAD_TYPE -D VARIABLE_TYPE=$VARIABLE_TYPE -D STANDARD_MM=$STMM_SUPPORT -D SYSTEM_LOADER=$OS_SUPPORT_TYPE
 
 cp Build/${UEFI_PROJECT}/${UEFI_TARGET}_GCC5/FV/SKY1_BL33_UEFI.fd ${PATH_OUT}
 
+if [ "$OS_SUPPORT_TYPE" == "android" ]; then
+    cp edk2-non-osi/Platform/CIX/Sky1/Application/LinuxLoader/LinuxLoader.efi edk2-platforms/Platform/CIX/Sky1/Sky1ABL/
+    cd edk2-platforms/Platform/CIX/Sky1/Sky1ABL
+    ./GenAblCap.sh LinuxLoader.efi 5
+    cp -f LinuxLoader.efi.cap "${PATH_OUT}/"
+    cd -
+fi
 }
 
 build_memcfg(){
@@ -131,12 +140,12 @@ exec_cix_mkimage() {
     local build_key_type=$1
     local path_out_temp
     local flash_all_file_name
-    local flash_ota_file_name    
+    local flash_ota_file_name
 
     if [[ "${build_key_type}" == "pr" ]]; then
         path_out_temp="${PATH_OUT_PR}"
         flash_all_file_name="cix_flash_all"
-        flash_ota_file_name="cix_flash_ota"        
+        flash_ota_file_name="cix_flash_ota"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader1.img" "${path_out_temp}/Firmwares/bootloader1.img"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader2.img" "${path_out_temp}/Firmwares/bootloader2.img"
         cp -f "${PATH_PACKAGE_TOOL}/certs/trusted_key_no.crt" "${path_out_temp}/certs/trusted_key_no.crt"
@@ -199,12 +208,12 @@ exec_cix_mkimage() {
     # update project specific spi flash layout
     if [[ -e "${PATH_PROJECT}/spi_flash_config_all.json" ]]; then
         echo -e "${GREEN}found project specific ${PATH_PROJECT}/spi_flash_config_all.json${NORMAL}"
-        cp ${PATH_PROJECT}/spi_flash_config_all.json ${PATH_OUT}
+        cp ${PATH_PROJECT}/spi_flash_config_all.json ${path_out_temp}
     fi
 
     if [[ -e "${PATH_PROJECT}/spi_flash_config_ota.json" ]]; then
         echo -e "${GREEN}found project specific ${PATH_PROJECT}/spi_flash_config_ota.json${NORMAL}"
-        cp ${PATH_PROJECT}/spi_flash_config_ota.json ${PATH_OUT}
+        cp ${PATH_PROJECT}/spi_flash_config_ota.json ${path_out_temp}
     fi
 
     # Generate bootloader3 image
@@ -272,8 +281,8 @@ if [[ ! -e "${PATH_OUT_PR2}" ]]; then
     mkdir -p "${PATH_OUT_PR2}/Firmwares"
     mkdir -p "${PATH_OUT_PR2}/Keys"
     mkdir -p "${PATH_OUT_PR2}/certs"
-fi  
-    
+fi
+
 if [ ! -z "$1" ]; then
     UEFI_PROJECT="$1"
 fi
@@ -285,6 +294,7 @@ fi
 case "$UEFI_PROJECT" in
 ("Merak")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    FASTBOOT_LOAD_TYPE="nvme"
     ;;
 ("Edge")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
@@ -303,6 +313,18 @@ case "$UEFI_PROJECT" in
     ;;
 ("O6")
     UEFI_PROJECT_PATH="Platform/Radxa/Orion"
+    ;;
+("android")
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    UEFI_PROJECT="Merak"
+    FASTBOOT_LOAD_TYPE="nvme"
+    OS_SUPPORT_TYPE="android"
+    ;;
+("androidO6")
+    UEFI_PROJECT_PATH="Platform/Radxa/Orion"
+    UEFI_PROJECT="O6"
+    FASTBOOT_LOAD_TYPE="nvme"
+    OS_SUPPORT_TYPE="android"
     ;;
 (*)
     echo -e "${RED}Unsupported Project ${UEFI_PROJECT}!!${NORMAL}"

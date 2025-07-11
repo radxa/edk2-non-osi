@@ -36,6 +36,9 @@
   AvbLib
   ArmLib
   OpteeLib
+  EfusePublicKeyLib
+  FctMiscLib
+  TimerLib
 
 [Guids]
 
@@ -43,3 +46,6 @@
   gCixSocInfoProtocolGuid
   gEfiUsbDeviceControlGuid
   gEfiBlockIoProtocolGuid
+
+[Pcd]
+  gCixPlatformTokenSpaceGuid.AndroidFastboot

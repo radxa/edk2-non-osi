@@ -27,16 +27,20 @@
   MdeModulePkg/MdeModulePkg.dec
   Platform/CIX/Sky1/Sky1.dec
 
-[Guids]
-  gCixPtaStmmGuid
-
 [Pcd]
+  gCixPlatformTokenSpaceGuid.PcdReservedFwOpteeCommunicateMemoryBase
+  gCixPlatformTokenSpaceGuid.PcdReservedFwOpteeCommunicateMemorySize
+  gCixPlatformTokenSpaceGuid.PcdReservedFwOpteeShareMemoryBase
+  gCixPlatformTokenSpaceGuid.PcdReservedFwOpteeShareMemorySize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize
+
+[Guids]
+  gCixPtaStmmGuid
 
 [LibraryClasses]
   ArmMmuLib

@@ -1,0 +1,21 @@
+## @file
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = AndroidConfigDxe
+  FILE_GUID                      = 41729847-1da8-dbe6-97e6-8d0eb1c122c1
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = AndroidConfigLibInit
+  UNLOAD_IMAGE                   = AndroidConfigLibUnload
+
+[Binaries.AARCH64]
+  PE32|AndroidConfigDxe.efi|*
+  DXE_DEPEX|AndroidConfigDxe.depex|*
+

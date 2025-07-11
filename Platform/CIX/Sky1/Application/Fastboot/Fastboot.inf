@@ -21,9 +21,12 @@
   Platform/CIX/Sky1/Sky1.dec
 
 [Guids]
+  gCixPlatformTokenSpaceGuid
 
 [Protocols]
   gEfiUsbDeviceControlGuid
-
   gEfiBlockIoProtocolGuid
+
+[Pcd]
+  gCixPlatformTokenSpaceGuid.AndroidFastboot
 
