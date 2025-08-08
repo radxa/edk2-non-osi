@@ -14,6 +14,9 @@ export PATH_OUT_PR="${WORKSPACE}/output/pr"
 export PATH_OUT_PR2="${WORKSPACE}/output/pr2"
 
 export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
+if [ "$(uname -m)" = "aarch64" ]; then
+  export ARM_TOOLCHAIN_ELF="gcc-arm-10.3-2021.07-aarch64-aarch64-none-elf"
+fi
 export UEFI_PROJECT="Merak"
 export UEFI_PROJECT_FOLDER="edk2-platforms"
 export UEFI_PROJECT_PATH="Platform/CIX/Sky1"
@@ -199,12 +202,17 @@ exec_cix_mkimage() {
     fi
 
 	# Copy tools to output
-	cp  "${PATH_PACKAGE_TOOL}/cert_uefi_create_rsa" "${path_out_temp}"
-	cp  "${PATH_PACKAGE_TOOL}/cix_package_tool" "${path_out_temp}"
-	cp  "${PATH_PACKAGE_TOOL}/fiptool" "${path_out_temp}"
-	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_all.json" "${path_out_temp}"
-	cp  "${PATH_PACKAGE_TOOL}/spi_flash_config_ota.json" "${path_out_temp}"
-
+    if [ "$(uname -m)" = "aarch64" ]; then
+      cp  "${PATH_PACKAGE_TOOL}/AARCH64/cert_uefi_create_rsa" "${path_out_temp}"
+      cp  "${PATH_PACKAGE_TOOL}/AARCH64/cix_package_tool" "${path_out_temp}"
+      cp  "${PATH_PACKAGE_TOOL}/AARCH64/fiptool" "${path_out_temp}"
+    else
+      cp  "${PATH_PACKAGE_TOOL}/X86_64/cert_uefi_create_rsa" "${path_out_temp}"
+      cp  "${PATH_PACKAGE_TOOL}/X86_64/cix_package_tool" "${path_out_temp}"
+      cp  "${PATH_PACKAGE_TOOL}/X86_64/fiptool" "${path_out_temp}"
+    fi
+    cp ${PATH_PACKAGE_TOOL}/spi_flash_config_all.json ${path_out_temp}
+    cp ${PATH_PACKAGE_TOOL}/spi_flash_config_ota.json ${path_out_temp}
     # update project specific spi flash layout
     if [[ -e "${PATH_PROJECT}/spi_flash_config_all.json" ]]; then
         echo -e "${GREEN}found project specific ${PATH_PROJECT}/spi_flash_config_all.json${NORMAL}"
