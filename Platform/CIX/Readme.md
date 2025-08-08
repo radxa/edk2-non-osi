@@ -9,14 +9,20 @@ CIX P1 edk2 code is base on as follows:
 - [edk2](https://github.com/tianocore/edk2): `fb493ac84ebc6860e1690770fb88183effadebfb`
 - [edk2-platforms](https://github.com/tianocore/edk2-platforms): `8ea6ec38da8812f0703e8845fe639b8845704f96`
 
-# How to build (X86 Linux Environment)
+# How to build (X86 & ARM64 Linux Environment)
   1. Install Arm GNU Toolchain on X86 machines.
     Download AArch64 bare-metal target (aarch64-none-elf) for x86_64 Linux hosted cross toolchains from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads. The verified version is 10.2-2020.11
 
   2. Config your GCC tool in build_and_package.sh
     For Example:
 
+    For x86_64 Linux hosted cross toolchains
+
     $ export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
+
+    For aarch64 Linux hosted cross toolchains
+
+    $ export ARM_TOOLCHAIN_ELF="gcc-arm-10.3-2021.07-aarch64-aarch64-none-elf"
 
   3. Install ACPI Tool
     Download ACPICA tool from https://github.com/acpica/acpica.git. The verifed tag is R03_31_22
