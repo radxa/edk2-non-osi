@@ -315,6 +315,9 @@ case "$UEFI_PROJECT" in
     UEFI_PROJECT_PATH="Platform/Radxa/Orion"
     FASTBOOT_LOAD_TYPE="nvme"
     ;;
+("O6N")
+    UEFI_PROJECT_PATH="Platform/Radxa/Orion"
+    ;;
 ("android")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     UEFI_PROJECT="Merak"
