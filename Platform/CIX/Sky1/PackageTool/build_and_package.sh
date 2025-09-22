@@ -322,6 +322,9 @@ case "$UEFI_PROJECT" in
 ("O6")
     UEFI_PROJECT_PATH="Platform/Radxa/Orion"
     ;;
+("O6N")
+    UEFI_PROJECT_PATH="Platform/Radxa/Orion"
+    ;;
 ("android")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     UEFI_PROJECT="Merak"
