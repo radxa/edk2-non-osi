@@ -12,18 +12,18 @@ CIX P1 edk2 code is base on as follows:
 # How to build (X86 Linux Environment)
   1. Install Arm GNU Toolchain on X86 machines.
     Download AArch64 bare-metal target (aarch64-none-elf) for x86_64 Linux hosted cross toolchains from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads. The verified version is 10.2-2020.11
-    
+
   2. Config your GCC tool in build_and_package.sh
     For Example:
-    
+
     $ export ARM_TOOLCHAIN_ELF="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
-    
+
   3. Install ACPI Tool
     Download ACPICA tool from https://github.com/acpica/acpica.git. The verifed tag is R03_31_22
-    
+
   4. Config your ACPI tool in build_and_package.sh
     For Example:
-    
+
     $ export IASL_PREFIX="${WORKSPACE}/tools/acpica/generate/unix/bin/"
 
   5. Config your edk2 submodule update method in build_and_package.sh
@@ -34,7 +34,7 @@ CIX P1 edk2 code is base on as follows:
     $ cd $YOUR_WORKSPACE
     $ ln -s edk2-non-osi/Platform/CIX/Sky1/PackageTool/build_and_package.sh build_and_package.sh
     $ ./build_and_package.sh
-    
+
   7. Found "cix_flash_all.bin" and "SKY1_BL33_UEFI.fd" in output folder
 
 # How to Flash Firmware
@@ -44,3 +44,4 @@ CIX P1 edk2 code is base on as follows:
     For Example:
 
     FS0:\>FlashUpdate.efi -f cix_flash_all.bin
+

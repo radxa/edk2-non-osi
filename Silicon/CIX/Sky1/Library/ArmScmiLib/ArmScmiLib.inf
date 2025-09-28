@@ -1,0 +1,56 @@
+#/** @file
+#
+#  Copyright (c) 2017-2021, Arm Limited. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#  System Control and Management Interface V1.0
+#    http://infocenter.arm.com/help/topic/com.arm.doc.den0056a/
+#    DEN0056A_System_Control_and_Management_Interface.pdf
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010019
+  BASE_NAME                      = ArmScmiLib
+  FILE_GUID                      = CA0864AB-6C08-6DA3-E9A8-D4798387BF8A
+  MODULE_TYPE                    = DXE_RUNTIME_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = ArmScmiLib
+  CONSTRUCTOR                    = ScmiLibConstructor
+
+[Binaries.AARCH64]
+  LIB|ArmScmiLib.lib|*
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  MdePkg/MdePkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[LibraryClasses]
+  ArmLib
+  ArmMtlLib
+  DebugLib
+  IoLib
+  UefiLib
+  UefiRuntimeLib
+  DxeServicesTableLib
+  HwMutexLib
+
+[Guids]
+  gEfiEventVirtualAddressChangeGuid
+
+[Protocols]
+  gArmScmiBaseProtocolGuid
+  gArmScmiClockProtocolGuid
+  gArmScmiClock2ProtocolGuid
+  gArmScmiPerformanceProtocolGuid
+  gEfiCpuArchProtocolGuid
+
+[FixedPcd.common]
+  gCixTokenSpaceGuid.PcdCixMtlMailBoxBase
+  gCixTokenSpaceGuid.PcdCixMtlMailBoxSize
+
+
+
+

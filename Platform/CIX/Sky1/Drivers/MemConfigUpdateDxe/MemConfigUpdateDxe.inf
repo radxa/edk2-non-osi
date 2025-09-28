@@ -1,6 +1,6 @@
 #/** @file
 #
-#  Copyright 2022 Cix Technology (Shanghai) Co., Ltd. All Rights Reserved.
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
 #
 #**/
 [Defines]
@@ -25,7 +25,6 @@
   MdeModulePkg/MdeModulePkg.dec
   EmbeddedPkg/EmbeddedPkg.dec
   Platform/CIX/Sky1/Sky1.dec
-  Silicon/CIX/Sky1/CixPkg.dec
 
 [LibraryClasses]
   UefiLib
@@ -40,11 +39,10 @@
 
 [Protocols]
   gCixFirmwareUpdateProtocolGuid
-  gCixConfigParamsManageProtocolGuid
 
 [Guids]
   gPlatformSetupVariableGuid
-  gCixSetupSaveVariableGuid
+  gSetupSaveVariableCallBackGuid
 
 [Depex]
   TRUE

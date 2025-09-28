@@ -1,0 +1,39 @@
+## @file
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = HwMutexRuntimeLib
+  FILE_GUID                      = 07838A59-150D-4BC5-B50A-BA5E95C06529
+  MODULE_TYPE                    = DXE_RUNTIME_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = HwMutexLib|DXE_RUNTIME_DRIVER
+  CONSTRUCTOR                    = HwMutexLibConstructor
+
+[Binaries.AARCH64]
+  LIB|HwMutexRuntimeLib.lib|*
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  DebugLib
+  IoLib
+  TimerLib
+  UefiRuntimeLib
+  DxeServicesTableLib
+
+[Guids]
+  gEfiEventVirtualAddressChangeGuid
+
+[Protocols]
+  gEfiCpuArchProtocolGuid

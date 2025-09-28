@@ -1,0 +1,47 @@
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+
+[Defines]
+	INF_VERSION                    = 0x00010005
+	BASE_NAME                      = FctMiscLib
+	FILE_GUID                      = 1405D969-BD2D-4295-A553-8DE8838A5766
+	MODULE_TYPE                    = BASE
+	VERSION_STRING                 = 1.0
+	LIBRARY_CLASS                  = FctMiscLib
+
+[BuildOptions]
+	GCC:*_*_*_CC_FLAGS = $(LLVM_ENABLE_SAFESTACK) $(LLVM_SAFESTACK_USE_PTR) $(LLVM_SAFESTACK_COLORING)
+	GCC:*_*_*_CC_FLAGS = -Wno-error=multistatement-macros
+
+[BuildOptions.AARCH64]
+	GCC:*_*_*_CC_FLAGS = -O2 $(SDLLVM_COMPILE_ANALYZE) $(SDLLVM_ANALYZE_REPORT) -Wno-address-of-packed-member
+	GCC:*_*_*_CC_FLAGS = $(UBSAN_UEFI_GCC_FLAG_UNDEFINED)
+	GCC:*_*_*_CC_FLAGS = $(UBSAN_UEFI_GCC_FLAG_ALIGNMENT)
+
+[Binaries.AARCH64]
+  LIB|FctMiscLib.lib|*
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  SecurityPkg/SecurityPkg.dec
+  Platform/CIX/Sky1/Sky1.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  DebugLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+  UefiLib
+  PrintLib
+  CsuPmIpcLib
+  NorFlashBasicLib
+
+[Depex]
+	TRUE

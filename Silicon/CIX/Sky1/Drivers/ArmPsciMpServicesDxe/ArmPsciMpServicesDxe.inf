@@ -1,0 +1,68 @@
+#/** @file
+#
+#  ARM MP services protocol driver
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 1.27
+  BASE_NAME                      = ArmPsciMpServicesDxe
+  FILE_GUID                      = 63e2e813-8470-4d47-8de7-1504b12567f4
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+
+  ENTRY_POINT                    = ArmPsciMpServicesDxeInitialize
+
+[Binaries.AARCH64]
+  PE32|ArmPsciMpServicesDxe.efi|*
+  DXE_DEPEX|ArmPsciMpServicesDxe.depex|*
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  Platform/CIX/Sky1/Sky1.dec
+
+[LibraryClasses]
+  ArmLib
+  ArmMmuLib
+  #ArmPlatformLib
+  ArmSmcLib
+  BaseMemoryLib
+  CacheMaintenanceLib
+  DebugLib
+  DmaLib
+  HobLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+  TimerLib
+  # SpinlockResourceLib
+  SocInitLib
+  # MpServicesLib
+
+[Protocols]
+  gEfiMpServiceProtocolGuid            ## PRODUCES
+  gEfiLoadedImageProtocolGuid          ## CONSUMES
+  gHardwareInterrupt2ProtocolGuid               ## CONSUMES
+  gHardwareInterruptProtocolGuid
+
+[Guids]
+  gArmMpCoreInfoGuid
+
+[FixedPcd]
+  # gCixTokenSpaceGuid.PcdBspToApMailBoxBase
+  # gCixTokenSpaceGuid.PcdDiagsTargetEL
+
+[Depex]
+  TRUE
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -mstrict-align

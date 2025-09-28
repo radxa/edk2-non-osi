@@ -1,0 +1,21 @@
+#/* @ABSelect.inf
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
+#  Copyright (c) 2017-2018,2020-2021 The Linux Foundation. All rights reserved.
+#  Portions Copyright (c) 2011-2013, ARM Limited. All rights reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#*/
+
+[Defines]
+	INF_VERSION                    = 0x00010006
+	BASE_NAME                      = ABSelect
+	FILE_GUID                      = e16fce27-bc22-c37d-5663-34a1c23f315b
+	MODULE_TYPE                    = UEFI_APPLICATION
+	VERSION_STRING                 = 0.1
+	ENTRY_POINT                    = ABSelectEntry
+
+[Binaries.AARCH64]
+  PE32|ABSelect.efi|*
+
