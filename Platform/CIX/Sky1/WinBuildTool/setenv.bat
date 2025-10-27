@@ -26,6 +26,11 @@ set PYTHON_COMMAND=%PYTHON_PATH%\python.exe
 rem =========================
 rem copy Base tools
 rem =========================
+SET WIN_BUILD_TOOLS_PATH=%WORKSPACE%\edk2-non-osi\Platform\CIX\Sky1\WinBuildTool
+if not exist %TOOLCHAIN_PATH% (
+    md %TOOLCHAIN_PATH%
+)
+xcopy %WIN_BUILD_TOOLS_PATH%\Toolchain\ %TOOLCHAIN_PATH%\ /Y /F /S /E
 if not exist %WORKSPACE%\edk2\BaseTools\Bin\Win32 (
 xcopy %WORKSPACE%\Toolchain\BaseTools\ %WORKSPACE%\edk2\BaseTools\Bin\ /Y /F /S /E
 )
