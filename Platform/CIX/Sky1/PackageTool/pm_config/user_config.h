@@ -95,7 +95,7 @@ static pm_config_pmic_t pmic_config = {
 
 #if PM_FAN_TABLE_CONFIG
 static pm_config_fan_t fan_config[MAX_FAN_NUM] = {
-	[0] = {
+    [0] = {
         .fan_valid = {
             .fields = {
                 .valid = PM_CONFIG_VALID,
@@ -159,7 +159,7 @@ static pm_config_fan_t fan_config[MAX_FAN_NUM] = {
         .pwm_freq = {
             .fields = {
                 .valid = PM_CONFIG_VALID,
-                .raw_data = 25000, // the pwm frequence. depending on the fan's characteristic, 1K~100K is recommended.
+                .raw_data = 25000, // the pwm frequence. depending on the fan's characteristic, 1k~100k is recommended.
             }
         }
     },
@@ -195,6 +195,13 @@ static pm_config_fan_t fan_config[MAX_FAN_NUM] = {
                 .valid = PM_CONFIG_INVALID,
             }
         }
+    },
+    [2] = {
+        .fan_valid = {
+            .fields = {
+                .valid = PM_CONFIG_INVALID,
+            }
+        },
     }
 };
 #define FAN_CONFIG_SIZE    sizeof(fan_config)
@@ -204,12 +211,20 @@ static pm_config_fan_t fan_config[MAX_FAN_NUM] = {
 #define PM_LOG_CONFIG 0
 #endif
 #if PM_LOG_CONFIG
+#define LOG_OVER_UART_MAGIC  0x2DBA0C1D
 static pm_config_log_t log_config = {
     .log_enable = {
         .fields = {
-            .valid    = PM_CONFIG_INVALID,
+            .valid    = PM_CONFIG_VALID,
+            .raw_data = LOG_OVER_UART_MAGIC,
         }
     },
+    .uart_baudrate = {
+        .fields = {
+            .valid    = PM_CONFIG_VALID,
+            .raw_data = 115200,
+        }
+    }
 };
 #endif
 
@@ -217,10 +232,12 @@ static pm_config_log_t log_config = {
 #define PM_VMIN_CONFIG 0
 #endif
 #if PM_VMIN_CONFIG
+#define VMIN_DISABLE_MAGIC 0x6BCD12CE
 static pm_config_vmin_t vmin_config = {
     .vmin_disable = {
         .fields = {
-            .valid    = PM_CONFIG_INVALID,
+            .valid    = PM_CONFIG_VALID,
+            .raw_data = VMIN_DISABLE_MAGIC,
         }
     },
     .vmin_profile = {
@@ -348,6 +365,33 @@ static config_data_t opp_100M_enable = {
     .fields = {
         .valid    = PM_CONFIG_VALID,
     }
+};
+#endif
+
+
+#ifndef PM_GPIO_CONFIG
+#define PM_GPIO_CONFIG 0
+#endif
+#if PM_GPIO_CONFIG
+static pm_config_gpio_t gpio_config = {
+    .gpio[0] = {
+        .fields = {
+            .valid    = PM_CONFIG_INVALID,
+            .raw_data = PM_GPIO_FUNC_NULL,
+        }
+    },
+    .gpio[1] = {
+        .fields = {
+            .valid    = PM_CONFIG_INVALID,
+            .raw_data = PM_GPIO_FUNC_NULL,
+        }
+    },
+    .gpio[2] = {
+        .fields = {
+            .valid    = PM_CONFIG_VALID,
+            .raw_data = PM_GPIO_FUNC_EC,
+        }
+    },
 };
 #endif
 

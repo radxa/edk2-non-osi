@@ -333,6 +333,26 @@ static void dump_spt_config(pm_config_spt_t * spt_config)
     printf("\t    coeff-alpha: "); dump_valid_flag(spt_config->spt_skin_coeff_alpha);
 }
 
+static void dump_gpio_config(pm_config_gpio_t* config)
+{
+    for (uint32_t i = 0; i < 3; i++) {
+        printf("  gpio[%d]:", i);
+        if (config->gpio[i].fields.valid == PM_CONFIG_INVALID) {
+            printf("NULL\n");
+        } else {
+           if (config->gpio[i].fields.raw_data == PM_GPIO_FUNC_NULL) {
+               printf("FUNCTION NULL\n");
+           } else if (config->gpio[i].fields.raw_data == PM_GPIO_FUNC_EC) {
+               printf("FUNCTION EC\n");
+           } else  if (config->gpio[i].fields.raw_data == PM_GPIO_FUNC_HEARTBEAT) {
+               printf("FUNCTION HEARTBEAT\n");
+           }  else  if (config->gpio[i].fields.raw_data == PM_GPIO_FUNC_INPUT) {
+               printf("FUNCTION INPUT\n");
+           }
+        }
+    }
+}
+
 static void dump_config()
 {
     pm_export_config_t *config = &g_config.config;
@@ -367,6 +387,11 @@ static void dump_config()
     dump_spt_config(&config->spt_config);
 
     printf("WDT timeout: "); dump_valid_flag(config->wdt_timeout);
+
+    printf("Core 100M opp: "); dump_valid_flag(config->opp_100M_enable);
+
+    printf("GPIO config:\n");
+    dump_gpio_config(&config->gpio_config);
 
     printf("\ncrc check: cka:0x%08x, ckb:0x%08x\n", g_config.crc1, g_config.crc2);
 }
@@ -466,6 +491,26 @@ static int32_t check_pvt_config(pm_config_pvt_t* config)
 }
 #endif
 
+#if PM_GPIO_CONFIG
+static int32_t check_gpio_config(pm_config_gpio_t* config)
+{
+    config_data_t *gpio = &config->gpio[0];
+    uint32_t gpio_num = 3;
+    do {
+        if (gpio->fields.valid == PM_CONFIG_VALID) {
+            if (gpio->fields.raw_data >= PM_GPIO_FUNC_MAX || gpio->fields.raw_data == PM_GPIO_FUNC_NULL) {
+                printf("gpio function invalid\n");
+                return -1;
+            }
+        }
+        gpio++;
+        gpio_num--;
+    } while (gpio_num);
+
+    return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     uint64_t ck = 0ULL;
@@ -521,6 +566,15 @@ int main(int argc, char **argv)
     memcpy(config->fan_config,   fan_config,   FAN_CONFIG_SIZE);
 #endif
 
+#if PM_GPIO_CONFIG
+    if (check_gpio_config(&gpio_config)) {
+        printf("Bad GPIO settings\n");
+        return -1;
+    }
+    memcpy(&config->gpio_config, &gpio_config, sizeof(config->gpio_config));
+
+#endif
+
 #if PM_OPP_TABLE_CONFIG
     if (!check_opp_table()) {
         printf("Bad OPP table\n");
@@ -570,32 +624,32 @@ int main(int argc, char **argv)
 
     dump_config();
 
-    // write to file
+    // open file for write
     strcpy(bin_name, PROJECT_NAME);
     strcat(bin_name, "_config.bin");
     printf("generate file [%s]\n", bin_name);
-    if ((bin_file = fopen(bin_name, "w+")) == NULL) {
+    if ((bin_file = fopen(bin_name, "wb+")) == NULL) {
       printf("file %s open failed!\n", bin_name);
       exit(-1);
     }
-    size_t wr_len = fwrite(&g_config, sizeof(g_config), 1, bin_file);
-    if (1 != wr_len) {
-        printf("write length error!!, write %zu objects, expect %zu objects\n", wr_len, (size_t)1);
+
+    // allocate the buffer
+    uint8_t * buffer_4096 = (uint8_t *)malloc(PM_CONFIG_BIN_SIZE);
+    if (buffer_4096 == NULL) {
+        printf("malloc %u Bytes failed!\n", PM_CONFIG_BIN_SIZE);
         fclose(bin_file);
         exit(-1);
     }
 
-    // stuff 0xFF up to 4KB
-    assert(sizeof(g_config) <= PM_CONFIG_BIN_SIZE);
-    size_t remain = PM_CONFIG_BIN_SIZE - sizeof(g_config);
-    uint8_t *remain_b;
-    remain_b = malloc(remain);
-    assert(remain_b != NULL);
-    memset(remain_b, 0xFF, remain);
-    wr_len = fwrite(remain_b, remain, 1, bin_file);
-    free(remain_b);
+    // fill the buffer with 0xFF
+    memset(buffer_4096, 0xFF, PM_CONFIG_BIN_SIZE);
+
+    // write the config structure
+    memcpy(buffer_4096, &g_config, sizeof(g_config));
+
+    size_t wr_len = fwrite(buffer_4096, PM_CONFIG_BIN_SIZE, 1, bin_file);
     if (1 != wr_len) {
-        printf("write 0xFF error!!\n");
+        printf("write length error!!, write %zu objects, expect %zu objects\n", wr_len, (size_t)1);
         fclose(bin_file);
         exit(-1);
     }

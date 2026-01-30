@@ -43,6 +43,7 @@
   GpioLib
   UefiLib
   PartitionLib
+  RebootReasonLib
 
 [Protocols]
   gEfiFirmwareVolume2ProtocolGuid

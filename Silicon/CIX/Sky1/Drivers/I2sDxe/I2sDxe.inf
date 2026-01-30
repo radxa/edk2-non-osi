@@ -1,0 +1,49 @@
+#  @file
+#
+#  Component description file for I2s driver
+#
+#  Copyright 2024 Cix Technology Group Co., Ltd. All Rights Reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = I2sDxe
+  FILE_GUID                      = aed14e06-3843-11ef-9eea-eb39aedc00e3
+  # MODULE_TYPE                    = UEFI_APPLICATION
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = I2sDxeEntryPoint
+
+[Binaries.AARCH64]
+  PE32|I2sDxe.efi|*
+  DXE_DEPEX|I2sDxe.depex|*
+
+[LibraryClasses]
+  # UefiApplicationEntryPoint
+  UefiDriverEntryPoint
+  IoLib
+  UefiBootServicesTableLib
+  UefiLib
+  TimerLib
+  PinMuxLib
+  GpioLib
+[Guids]
+
+[Packages]
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  Silicon/CIX/Sky1/CixPkg.dec
+
+[Pcd]
+
+[Protocols]
+  gCixResetProtocolGuid
+  gCixClockProtocolGuid
+  gCixPowerProtocolGuid
+  gEfiI2sMasterProtocolGuid
+  gCixConfigParamsManageProtocolGuid
+[Depex]
+  TRUE

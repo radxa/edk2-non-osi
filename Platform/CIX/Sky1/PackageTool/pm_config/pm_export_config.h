@@ -14,9 +14,9 @@
 
 #define PM_CONFIG_SIGNATURE      TABLE_SIGNATURE( 'P', 'M', 'C', 'F' )
 
-/* pm-config current supported version (v3.0) */
+/* pm-config current supported version (v3.1) */
 #define PM_CONFIG_VERSION_MAJOR  3
-#define PM_CONFIG_VERSION_MINOR  0
+#define PM_CONFIG_VERSION_MINOR  1
 
 #include "cfg_dpm_pwrrail.h"
 
@@ -162,6 +162,18 @@ typedef struct pm_config_spt {
     config_data_t       spt_skin_coeff_alpha;// x 1e-5f
 } pm_config_spt_t;
 
+typedef struct pm_config_gpio {
+    config_data_t       gpio[3];
+} pm_config_gpio_t;
+
+typedef enum pm_gpio_function {
+    PM_GPIO_FUNC_NULL = 0,
+    PM_GPIO_FUNC_EC,         // handshake with EC to switch fan mode
+    PM_GPIO_FUNC_HEARTBEAT,  // driver LED to indicate system status
+    PM_GPIO_FUNC_INPUT,      // set as input to detect outside signal
+    PM_GPIO_FUNC_MAX
+} pm_gpio_function_t;
+
 typedef struct {
     pm_config_pmic_t        pmic_config;
     pm_config_pvt_t         pvt_config;
@@ -173,6 +185,7 @@ typedef struct {
     pm_config_spt_t         spt_config;
     config_data_t           wdt_timeout;
     config_data_t           opp_100M_enable;
+    pm_config_gpio_t        gpio_config;
     uint8_t                 reserved[111];
 } pm_export_config_t;
 

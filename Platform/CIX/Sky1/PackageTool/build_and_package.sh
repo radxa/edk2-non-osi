@@ -27,6 +27,9 @@ export OS_SUPPORT_TYPE="common"
 export FASTBOOT_LOAD_TYPE="disable"
 
 exec_blankfile() {
+    if [[ -e $1 ]]; then
+        rm -rf $1
+    fi
 	for ((i=0;i<$2;i++))
 	do
 		echo -e -n "\xFF" >> $1
@@ -151,14 +154,12 @@ exec_cix_mkimage() {
         flash_ota_file_name="cix_flash_ota"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader1.img" "${path_out_temp}/Firmwares/bootloader1.img"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares/bootloader2.img" "${path_out_temp}/Firmwares/bootloader2.img"
-        cp -f "${PATH_PACKAGE_TOOL}/certs/trusted_key_no.crt" "${path_out_temp}/certs/trusted_key_no.crt"
     else
         path_out_temp="${PATH_OUT_PR2}"
         flash_all_file_name="cix_flash_all2"
         flash_ota_file_name="cix_flash_ota2"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares2/bootloader1.img" "${path_out_temp}/Firmwares/bootloader1.img"
         cp -f "${PATH_PACKAGE_TOOL}/Firmwares2/bootloader2.img" "${path_out_temp}/Firmwares/bootloader2.img"
-        cp -f "${PATH_PACKAGE_TOOL}/certs2/trusted_key_no.crt" "${path_out_temp}/certs/trusted_key_no.crt"
     fi
 
     local path_out_firmwares="${path_out_temp}/Firmwares"
@@ -210,6 +211,7 @@ exec_cix_mkimage() {
       cp  "${PATH_PACKAGE_TOOL}/X86_64/cert_uefi_create_rsa" "${path_out_temp}"
       cp  "${PATH_PACKAGE_TOOL}/X86_64/cix_package_tool" "${path_out_temp}"
       cp  "${PATH_PACKAGE_TOOL}/X86_64/fiptool" "${path_out_temp}"
+	  cp  "${PATH_PACKAGE_TOOL}/cix_regen_trusted_key_cert" "${path_out_temp}"
     fi
     cp ${PATH_PACKAGE_TOOL}/spi_flash_config_all.json ${path_out_temp}
     cp ${PATH_PACKAGE_TOOL}/spi_flash_config_ota.json ${path_out_temp}
@@ -224,8 +226,21 @@ exec_cix_mkimage() {
         cp ${PATH_PROJECT}/spi_flash_config_ota.json ${path_out_temp}
     fi
 
+    # update project specific oem key pair
+    if [[ -e "${PATH_PROJECT}/Keys/oem_privatekey.pem" ]]; then
+        echo -e "${GREEN}found project specific ${PATH_PROJECT}/Keys/oem_privatekey.pem${NORMAL}"
+        cp ${PATH_PROJECT}/Keys/oem_privatekey.pem ${path_out_temp}/Keys/
+    fi
+
+    if [[ -e "${PATH_PROJECT}/Keys/oem_publickey.pem" ]]; then
+        echo -e "${GREEN}found project specific ${PATH_PROJECT}/Keys/oem_publickey.pem${NORMAL}"
+        cp ${PATH_PROJECT}/Keys/oem_publickey.pem ${path_out_temp}/Keys/
+    fi
+
     # Generate bootloader3 image
     cd "${path_out_temp}"
+
+    ./cix_regen_trusted_key_cert -p ${path_out_temp}/Keys/oem_publickey.pem -s ${path_out_temp}/Keys/oem_privatekey.pem -o ${path_out_temp}/certs/trusted_key_no.crt
 
     ./cert_uefi_create_rsa --key-alg rsa --key-size 3072 --hash-alg sha256 -p --ntfw-nvctr 223 \
         --nt-fw-cert ${path_out_temp}/certs/nt_fw_cert.crt \
@@ -304,8 +319,13 @@ case "$UEFI_PROJECT" in
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     FASTBOOT_LOAD_TYPE="nvme"
     ;;
+("OPI6")
+    UEFI_PROJECT_FOLDER="edk2-project"
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    ;;
 ("Edge")
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    FASTBOOT_LOAD_TYPE="nvme"
     ;;
 ("CloudBook")
     UEFI_PROJECT_FOLDER="edk2-project"

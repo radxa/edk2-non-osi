@@ -43,6 +43,7 @@
   HobLib
   UefiDriverEntryPoint
   OpteeLib
+  TimerLib
 
 [Protocols]
   gEfiMmCommunication2ProtocolGuid              ## PRODUCES
