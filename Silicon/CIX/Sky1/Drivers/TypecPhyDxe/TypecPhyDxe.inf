@@ -30,6 +30,7 @@
   UefiRuntimeLib
   PostCodeLib
   ShMemLib
+  HwHarvestLib
 
 [Guids]
 

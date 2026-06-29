@@ -36,6 +36,7 @@
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiLib
+  HwHarvestLib
 
 [Protocols]
   gEfiDevicePathProtocolGuid

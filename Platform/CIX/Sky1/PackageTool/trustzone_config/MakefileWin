@@ -1,0 +1,13 @@
+CC:=gcc
+CFLAGS:=-Wall
+
+all: clean trustzone_bin_config
+
+trustzone_bin_config: trustzone_bin_config.c $(wildcard *.h)
+	$(CC) $(CFLAGS) -o $@ $(firstword $^)
+	./$@
+
+clean:
+	del /s /f /q trustzone_bin_config trustzone_config.bin
+
+.PHONY: all clean

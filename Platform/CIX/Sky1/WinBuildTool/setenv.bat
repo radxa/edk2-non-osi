@@ -50,9 +50,9 @@ if not exist %WORKSPACE%\Build (
     md %WORKSPACE%\Build
 )
 
-if not exist %WORKSPACE%\Build\Package (
-    md %WORKSPACE%\Build\Package
-)
+rd /s /Q %WORKSPACE%\Build\Package
+md %WORKSPACE%\Build\Package
+
 
 if not exist %WORKSPACE%\Build\Package\Firmwares (
     md %WORKSPACE%\Build\Package\Firmwares

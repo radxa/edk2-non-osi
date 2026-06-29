@@ -130,6 +130,29 @@ build_pmcfg(){
     fi
 }
 
+build_trustzonecfg(){
+    echo -e "BUILD TRUSTZONECFG $1 Started."
+    local trustzonecfg_dir="${PATH_PROJECT}/trustzone_config"
+    local trustzonecfg_file="trustzone_config.bin"
+    local trustzonecfg_target="$1"
+
+    cd $trustzonecfg_dir
+
+    #compile and generate the trustzone config
+    make || exit 1
+
+    cd -
+
+    cp $trustzonecfg_dir/$trustzonecfg_file $trustzonecfg_target
+
+    if [[ -e "${trustzonecfg_target}" ]]; then
+        echo -e "${GREEN}BUILD TRUSTZONECFG to $trustzonecfg_target Success!!${NORMAL}"
+    else
+        echo -e "${RED}BUILD TRUSTZONECFG to $trustzonecfg_target Failed!!${NORMAL}"
+        exit 1
+    fi
+}
+
 exec_cix_mkimage() {
     export PATH_PACKAGE_TOOL="${WORKSPACE}/edk2-non-osi/Platform/CIX/Sky1/PackageTool"
     export PATH_FIRMARES="${PATH_OUT}/Firmwares"
@@ -179,6 +202,10 @@ exec_cix_mkimage() {
     if [[ -e "${PATH_PROJECT}/pm_config" ]]; then
         echo -e "${GREEN}found project specific pm config ${PATH_PROJECT}/pm_config${NORMAL}"
         build_pmcfg "${path_out_firmwares}/csu_pm_config.bin"
+    fi
+    if [[ -e "${PATH_PROJECT}/trustzone_config" ]]; then
+        echo -e "${GREEN}found project specific trustzone config ${PATH_PROJECT}/trustzone_config${NORMAL}"
+        build_trustzonecfg "${path_out_firmwares}/trustzone_config.bin"
     fi
 
     # update project specific low level firmware
@@ -308,6 +335,11 @@ fi
 
 case "$UEFI_PROJECT" in
 ("Merak")
+    UEFI_PROJECT_PATH="Platform/CIX/Sky1"
+    FASTBOOT_LOAD_TYPE="nvme"
+    ;;
+("Alcor")
+    UEFI_PROJECT_FOLDER="edk2-project"
     UEFI_PROJECT_PATH="Platform/CIX/Sky1"
     FASTBOOT_LOAD_TYPE="nvme"
     ;;
